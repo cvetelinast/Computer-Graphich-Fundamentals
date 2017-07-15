@@ -1,0 +1,657 @@
+﻿<!DOCTYPE html>
+
+<html>
+	<head>
+		<script src="three.min.js"></script>
+		<script src="human.js"></script>
+	</head>
+	
+	<body>
+		<h1>"Народен танц"<br><small>ф.н. 81384 &ndash; група 7 &ndash; Цветелина Стоянова</small></h1>
+		
+		<audio id="music" autoplay loop>
+				<source src="rachenica.mp3" type="audio/mpeg">
+		</audio>
+
+		<script>
+		// нагласяване на цвета и центрирането на текста с имената ви
+			document.getElementsByTagName('h1')[0].style = 'color:white; text-align:center; font-size:1.75em';
+			
+		// рисувателно поле на цял екран
+			renderer = new THREE.WebGLRenderer({antialias:true});
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			renderer.domElement.style = 'width:100%; height:100%; position:fixed; top:0; left:0; z-index:-1;';
+			
+		// сцена и камера
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera( 50, window.innerWidth/window.innerHeight, 0.1, 1000 );
+			camera.position.set(0,50,300); //0,0,150
+
+		// светлини
+			var light = new THREE.DirectionalLight('yellow',0.8);
+			light.position.set(0,1,4);
+			scene.add(light);
+			scene.add( new THREE.AmbientLight('white',0.4) );
+			
+		// функция за анимиране на сцената
+			var t = 0; // време
+			function drawFrame()
+			{
+				requestAnimationFrame( drawFrame );
+				if (animate) animate(t++);
+				renderer.render( scene, camera );
+			}			
+			
+		//сценична мъгла - искаме мъгла само около подуима 
+			scene.fog = new THREE.Fog( 'black', 50,800 );
+			
+		// концерт
+			var concert = new THREE.Object3D();
+			scene.add( concert );
+			
+		// построяване на публиката
+			// по-добре би било с манекени, но става прекалено тежко за изпълнение
+			for (var i=0; i<400; i++)
+			{
+				var textureFace = new THREE.TextureLoader().load( "face.jpg" );
+				var geometry1 = new THREE.SphereBufferGeometry( 4, 32, 32);
+				var face = new THREE.Mesh( 
+					geometry1,
+					new THREE.MeshPhongMaterial({map:textureFace}) 
+				);
+				scene.add( face );			
+				face.scale.set(1,1.7,1);
+				
+				var geometry = new THREE.ConeGeometry( 5, 40, 32 );
+				var material = new THREE.MeshBasicMaterial( {color: 'black'} );
+				var cone = new THREE.Mesh( geometry, material );
+				cone.position.set(0,-17,0);
+				face.add( cone );
+				face.rotation.set(0,Math.PI/2,0);
+				face.position.set( 350*Math.random()-175,5*Math.random(),350*Math.random()+175 );				
+				concert.add( face );
+			}
+			
+		//заграждане около публиката
+			var shape = new THREE.Shape();
+			shape.moveTo( 180,180 );
+			shape.lineTo( 180, 0 );
+			shape.lineTo( -180, 0 );
+			shape.lineTo( -180, 180 );
+			shape.lineTo( -175, 180 );
+			shape.lineTo( -175, 5 );
+			shape.lineTo( 175, 5 );
+			shape.lineTo( 175, 175 );
+			shape.lineTo( 180, 180 );
+			
+
+			var extrudeSettings = {
+				steps: 2,
+				amount: 80,
+				bevelEnabled: false,
+				bevelThickness: 1,
+				bevelSize: 1,
+				bevelSegments: 1
+			};
+			var stena = new THREE.TextureLoader().load( "texture4.jpg" );
+			var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+			var material = new THREE.MeshPhongMaterial( { map:stena } );
+			var mesh = new THREE.Mesh( geometry, material ) ;
+			mesh.rotation.set(Math.PI/2,0,0);
+			mesh.position.set(0,-10,160);
+			scene.add( mesh );
+			
+		//плакат на ансамбъл Българе 
+			var plakat = new THREE.TextureLoader().load( "ansambul.jpg" );
+			var plakat2 = new THREE.Mesh( 
+				new THREE.BoxGeometry( 1, 80, 350 ),
+				new THREE.MeshPhongMaterial({map: plakat}) 
+			);
+			plakat2.position.set(0, -50, 159.5);
+			//cube.castShadow = true;
+			//cube.receiveShadow = true;
+			plakat2.rotation.set(0,Math.PI/2,0);
+			scene.add( plakat2 );
+			
+			
+		//подиум
+			var texture = new THREE.TextureLoader().load( "texture4.jpg" );
+			var cube = new THREE.Mesh( 
+				new THREE.BoxGeometry( 350, 10, 150 ),
+				new THREE.MeshPhongMaterial({map: texture}) 
+			);
+			cube.position.set(0, -36, 0);
+			scene.add( cube );
+			
+		//завеси
+			var texture2 = new THREE.TextureLoader().load( "curtains.jpg" );
+			var curtains = new THREE.Mesh( 
+				new THREE.BoxGeometry( 10, 200, 350 ),
+				new THREE.MeshPhongMaterial({map: texture2}) 
+			);
+			curtains.position.set(0, 60, -80);
+			curtains.rotation.set(0,Math.PI/2,0);
+			scene.add( curtains );
+		
+		//други цветове на дрехите [глава,обувка,таз,сферички,крайник,торс,]
+			colors[0]='Tan';
+			colors[1]='black';
+			colors[2]='SaddleBrown';
+			colors[3]='SaddleBrown';
+			colors[4]='SaddleBrown';
+			colors[5]='red';
+	
+		// създаване на светлини
+			var colorsLights = ['red','blue', 'yellow'];
+			
+			var lights=[];
+			for (var i=0; i<3; i++)
+			{
+				lights[i] = new THREE.PointLight(colorsLights[i]);
+				lights[i].castShadow = true;
+				scene.add( lights[i] );
+				
+			}
+			
+		// човече
+		// статични елементи на позата
+			
+		// мъж и жена в центъра (вътрешни)
+			мъж = мъжествен();
+			мъж.position.set(-20, 0, 0);
+			мъж.rotation.set(0, -Math.PI/2, 0);
+			
+			мъж.л_ръка.врът(0,-80,-25);
+				мъж.л_лакът.врът(40,195,-90);
+				мъж.л_китка.врът(20,-60, -75);
+				
+			мъж.д_ръка.врът(0,80,-25);
+				мъж.д_лакът.врът(-40,-195,-90);
+				мъж.д_китка.врът(-20,60, -75);
+			
+			жена = женствен(); 
+			жена.scale.set(0.9,0.9,0.9);
+			жена.position.set(20,0,0);
+			жена.rotation.set(0, -Math.PI/2, 0);
+			
+			жена.л_ръка.врът(0,-80,-25);
+				жена.л_лакът.врът(40,175,-90);
+				жена.л_китка.врът(20,-60, -75);
+				
+			жена.д_ръка.врът(0,80,-25);
+				жена.д_лакът.врът(-40,-175,-90);
+				жена.д_китка.врът(-20,60, -75);
+		
+		//мъж 2 и жена 2, от двете страни на тези в центъра	(средни)	
+			мъж_2 = мъжествен();
+			мъж_2.position.set(60, 0, 0);
+			мъж_2.rotation.set(0, -Math.PI/2, 0);
+			
+			мъж_2.л_ръка.врът(0,-80,-25);
+				мъж_2.л_лакът.врът(40,195,-90);
+				мъж_2.л_китка.врът(20,-60, -75);
+				
+			мъж_2.д_ръка.врът(0,80,-25);
+				мъж_2.д_лакът.врът(-40,-195,-90);
+				мъж_2.д_китка.врът(-20,60, -75);
+			
+			жена_2 = женствен(); 
+			жена_2.scale.set(0.9,0.9,0.9);
+			жена_2.position.set(-60,0,0);
+			жена_2.rotation.set(0, -Math.PI/2, 0);
+			
+			жена_2.л_ръка.врът(0,-80,-25);
+				жена_2.л_лакът.врът(40,175,-90);
+				жена_2.л_китка.врът(20,-60, -75);
+				
+			жена_2.д_ръка.врът(0,80,-25);
+				жена_2.д_лакът.врът(-40,-175,-90);
+				жена_2.д_китка.врът(-20,60, -75);
+				
+		//мъж 3 и жена 3 (външни)
+			мъж_3 = мъжествен();
+			мъж_3.position.set(-100, 0, 0);
+			мъж_3.rotation.set(0, -Math.PI/2, 0);
+			
+			мъж_3.л_ръка.врът(0,-80,-25);
+				мъж_3.л_лакът.врът(40,195,-90);
+				мъж_3.л_китка.врът(20,-60, -75);
+				
+			мъж_3.д_ръка.врът(0,80,-25);
+				мъж_3.д_лакът.врът(-40,-195,-90);
+				мъж_3.д_китка.врът(-20,60, -75);
+			
+			жена_3 = женствен(); 
+			жена_3.scale.set(0.9,0.9,0.9);
+			жена_3.position.set(100,0,0);
+			жена_3.rotation.set(0, -Math.PI/2, 0);
+			
+			жена_3.л_ръка.врът(0,-80,-25);
+				жена_3.л_лакът.врът(40,175,-90);
+				жена_3.л_китка.врът(20,-60, -75);
+				
+			жена_3.д_ръка.врът(0,80,-25);
+				жена_3.д_лакът.врът(-40,-175,-90);
+				жена_3.д_китка.врът(-20,60, -75);
+		
+		
+		//дрехи на мъжете
+		//калпак на мъж
+			var geometry = new THREE.SphereBufferGeometry( 10, 32, 32,0,2*Math.PI, 0, Math.PI/2 );
+			var textureHat = new THREE.TextureLoader().load( "kalpak2.jpg" );
+			
+			var hat = new THREE.Mesh( 
+			geometry,
+				new THREE.MeshPhongMaterial({map:textureHat}) 
+			);			
+			hat.scale.set(0.35,1,0.35);
+			hat.position.set(-1,27,0);
+			hat.rotation.set(0,0,Math.PI/10);
+			мъж.add(hat);
+			
+		//калпак на мъж_2	
+			var textureHat2 = new THREE.TextureLoader().load( "kalpak3.jpg" ); //текстурите са различни, за да е по-интересно
+			var hat2 = new THREE.Mesh( 
+				geometry,
+				new THREE.MeshPhongMaterial({map:textureHat2}) 
+			);			
+			hat2.scale.set(0.35,1,0.35);
+			hat2.position.set(-1,27,0);
+			hat2.rotation.set(0,0,Math.PI/10);
+			мъж_2.add(hat2);
+			
+		//калпак на мъж_3	
+			var textureHat3 = new THREE.TextureLoader().load( "kalpak4.jpg" );
+			var hat3 = new THREE.Mesh( 
+				geometry,
+				new THREE.MeshPhongMaterial({map:textureHat3}) 
+			);			
+			hat3.scale.set(0.35,1,0.35);
+			hat3.position.set(-1,27,0);
+			hat3.rotation.set(0,0,Math.PI/10);
+			мъж_3.add(hat3);
+			
+			
+		//пояс на мъжа, от текстурата на калпака
+			var geometry = new THREE.CylinderGeometry( 6, 5,7,32);
+			var texture = new THREE.TextureLoader().load( "kalpak2.jpg" );
+			var a = new THREE.Mesh( 
+				geometry,
+				new THREE.MeshPhongMaterial({map:texture}) 
+			);			
+			a.scale.set(0.5,1,0.75);
+			a.position.set(-0.7,9,0);
+			a.rotation.set(0,0,0);
+			мъж.add(a);
+			
+		//пояс на мъж_2
+			var geometry = new THREE.CylinderGeometry( 6, 5,7,32);
+			var texture2 = new THREE.TextureLoader().load( "kalpak3.jpg" );			
+			var a = new THREE.Mesh( 
+				geometry,
+				new THREE.MeshPhongMaterial({map:texture2}) 
+			);			
+			a.scale.set(0.5,1,0.75);
+			a.position.set(-0.7,9,0);
+			a.rotation.set(0,0,0);
+			мъж_2.add(a);
+		
+		//пояс на мъж_3
+			var geometry = new THREE.CylinderGeometry( 6, 5,7,32);
+			var texture3 = new THREE.TextureLoader().load( "kalpak4.jpg" );			
+			var a = new THREE.Mesh( 
+				geometry,
+				new THREE.MeshPhongMaterial({map:texture3}) 
+			);			
+			a.scale.set(0.5,1,0.75);
+			a.position.set(-0.7,9,0);
+			a.rotation.set(0,0,0);
+			мъж_3.add(a);
+			
+			
+		//дрехи на жената
+		//рокля
+			var geometry = new THREE.SphereBufferGeometry( 10, 32, 32,0,2*Math.PI, 0, Math.PI/2 );
+			//SphereBufferGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength)
+			var texture3 = new THREE.TextureLoader().load( "texture6.jpg" );
+			var dress = new THREE.Mesh( 
+				geometry,
+				new THREE.MeshPhongMaterial({map:texture3}) 
+			);	
+			dress.scale.set(1,4,1);
+			dress.position.set(-1,-30,0);
+			жена.add(dress);
+			
+		//престилка
+			var prestilka = new THREE.TextureLoader().load( "prestilka2.jpg" );
+			var geometry2 = new THREE.SphereBufferGeometry( 10, 32, 32,0,Math.PI/2, 0, 2*Math.PI/5 );
+			var dress2 = new THREE.Mesh( 
+				geometry2,
+				new THREE.MeshPhongMaterial({map:prestilka}) 
+			);
+			dress2.scale.set(1,4,1);
+			dress2.position.set(-1,-29,0);
+			dress2.rotation.set(0,3*Math.PI/4,0);
+			жена.add(dress2);
+			
+		//дрехи на жена_2
+		//рокля
+			var geometry = new THREE.SphereBufferGeometry( 10, 32, 32,0,2*Math.PI, 0, Math.PI/2 );
+			var texture3 = new THREE.TextureLoader().load( "texture6.jpg" );
+			var dress = new THREE.Mesh( 
+				geometry,
+				new THREE.MeshPhongMaterial({map:texture3}) 
+			);	
+			dress.scale.set(1,4,1);
+			dress.position.set(-1,-30,0);
+			жена_2.add(dress);
+			
+		//престилка
+			var prestilka2 = new THREE.TextureLoader().load( "prestilka5.jpg" );
+			var geometry2 = new THREE.SphereBufferGeometry( 10, 32, 32,0,Math.PI/2, 0, 2*Math.PI/5 );
+			var dress2 = new THREE.Mesh( 
+				geometry2,
+				new THREE.MeshPhongMaterial({map:prestilka2}) 
+			);
+			dress2.scale.set(1,4,1);
+			dress2.position.set(-1,-29,0);
+			dress2.rotation.set(0,3*Math.PI/4,0);
+			жена_2.add(dress2);
+			
+			
+		//дрехи на жена_3
+		//рокля
+			var geometry = new THREE.SphereBufferGeometry( 10, 32, 32,0,2*Math.PI, 0, Math.PI/2 );
+			var texture3 = new THREE.TextureLoader().load( "texture6.jpg" );
+			var dress = new THREE.Mesh( 
+				geometry,
+				new THREE.MeshPhongMaterial({map:texture3}) 
+			);	
+			dress.scale.set(1,4,1);
+			dress.position.set(-1,-30,0);
+			жена_3.add(dress);
+			
+		//престилка
+			var prestilka3 = new THREE.TextureLoader().load( "prestilka6.jpg" );
+			var geometry2 = new THREE.SphereBufferGeometry( 10, 32, 32,0,Math.PI/2, 0, 2*Math.PI/5 );
+			var dress2 = new THREE.Mesh( 
+				geometry2,
+				new THREE.MeshPhongMaterial({map:prestilka3}) 
+			);
+			dress2.scale.set(1,4,1);
+			dress2.position.set(-1,-29,0);
+			dress2.rotation.set(0,3*Math.PI/4,0);
+			жена_3.add(dress2);
+			
+		//по главите на жените	
+		//венец на жената (с текстурата на престилката)
+			var geometry1 = new THREE.SphereBufferGeometry( 10, 32, 32,0,2*Math.PI, 0, Math.PI/2 );
+			var textureHatW1 = new THREE.TextureLoader().load( "prestilka2.jpg" );
+			var hatW1 = new THREE.Mesh( 
+				geometry1,
+				new THREE.MeshPhongMaterial({map:textureHatW1}) 
+			);			
+			hatW1.scale.set(0.35,0.35,0.35);
+			hatW1.position.set(-0.8,27,0);
+			hatW1.rotation.set(0,0,Math.PI/13);
+			жена.add(hatW1);
+			
+		//венец на жена_2
+			var geometry1 = new THREE.SphereBufferGeometry( 10, 32, 32,0,2*Math.PI, 0, Math.PI/2 );
+			var textureHatW2 = new THREE.TextureLoader().load( "prestilka5.jpg" );
+			var hatW2 = new THREE.Mesh( 
+				geometry1,
+				new THREE.MeshPhongMaterial({map:textureHatW2}) 
+			);			
+			hatW2.scale.set(0.35,0.35,0.35);
+			hatW2.position.set(-0.8,27,0);
+			hatW2.rotation.set(0,0,Math.PI/13);
+			жена_2.add(hatW2);
+			
+		//венец на жена_3
+			var geometry1 = new THREE.SphereBufferGeometry( 10, 32, 32,0,2*Math.PI, 0, Math.PI/2 );
+			var textureHatW3 = new THREE.TextureLoader().load( "prestilka6.jpg" );
+			var hatW3 = new THREE.Mesh( 
+				geometry1,
+				new THREE.MeshPhongMaterial({map:textureHatW3}) 
+			);			
+			hatW3.scale.set(0.35,0.35,0.35);
+			hatW3.position.set(-0.8,27,0);
+			hatW3.rotation.set(0,0,Math.PI/13);
+			жена_3.add(hatW3);
+			
+		//кърпа на главата на жената
+			var shape = new THREE.Shape();
+			shape.moveTo(  0, 0 );
+			shape.quadraticCurveTo(  4, 8, 0, 8.2 );
+			shape.quadraticCurveTo( -4, 8, 0, 0 );
+			var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments:100, steps:2, 
+				bevelSize: 10, bevelThickness: 8 };
+			var hairGeom = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+			var hair = new THREE.Mesh( hairGeom, new THREE.MeshPhongMaterial({color:'red'}) );
+			hair.scale.set(0.2,0.9,0.5);
+			hair.rotation.set(0, Math.PI,Math.PI/16);
+			hair.position.set(-5,15,0);			
+			жена.add( hair );
+		
+		//кърпа на главата на жена_2
+			var shape = new THREE.Shape();
+			shape.moveTo(  0, 0 );
+			shape.quadraticCurveTo(  4, 8, 0, 8.2 );
+			shape.quadraticCurveTo( -4, 8, 0, 0 );
+			var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments:100, steps:2, 
+				bevelSize: 10, bevelThickness: 8 };
+			var hairGeom = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+			var hair = new THREE.Mesh( hairGeom, new THREE.MeshPhongMaterial({color:'red'}) );
+			hair.scale.set(0.2,0.9,0.5);
+			hair.rotation.set(0, Math.PI,Math.PI/16);
+			hair.position.set(-5,15,0);			
+			жена_2.add( hair );
+		
+		//кърпа на главата на жена_3
+			var shape = new THREE.Shape();
+			shape.moveTo(  0, 0 );
+			shape.quadraticCurveTo(  4, 8, 0, 8.2 );
+			shape.quadraticCurveTo( -4, 8, 0, 0 );
+			var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments:100, steps:2, 
+				bevelSize: 10, bevelThickness: 8 };
+			var hairGeom = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+			var hair = new THREE.Mesh( hairGeom, new THREE.MeshPhongMaterial({color:'red'}) );
+			hair.scale.set(0.2,0.9,0.5);
+			hair.rotation.set(0, Math.PI,Math.PI/16);
+			hair.position.set(-5,15,0);			
+			жена_3.add( hair );
+			
+			
+		// създаване на колие
+			var necklace = new THREE.Shape();
+			necklace.moveTo(  0, 0 );
+			necklace.quadraticCurveTo(  4, 8, 0, 8.2 );
+			necklace.quadraticCurveTo( -4, 8, 0, 0 );
+			var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 1, steps: 2, 
+				bevelSize: 1, bevelThickness: 1 };
+			var geometry = new THREE.ExtrudeGeometry( necklace, extrudeSettings );
+			geometry.translate(0,0,-3);
+			var neckLace = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial({shininess:400,specular:'white'}) );
+			neckLace.scale.set(0.2,0.2,0.2);
+			neckLace.position.set(2,20,0);
+			neckLace.rotation.set(0,Math.PI/2, Math.PI);
+			жена.add( neckLace );
+			
+		// създаване на колие жена_2
+			var necklace2 = new THREE.Shape();
+			necklace2.moveTo(  0, 0 );
+			necklace2.quadraticCurveTo(  4, 8, 0, 8.2 );
+			necklace2.quadraticCurveTo( -4, 8, 0, 0 );
+			var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 1, steps: 2, 
+				bevelSize: 1, bevelThickness: 1 };
+			var geometry2 = new THREE.ExtrudeGeometry( necklace2, extrudeSettings );
+			geometry2.translate(0,0,-3);
+			var neckLace2 = new THREE.Mesh( geometry2, new THREE.MeshPhongMaterial({shininess:400,specular:'blue'}) );
+			neckLace2.scale.set(0.2,0.2,0.2);
+			neckLace2.position.set(2,20,0);
+			neckLace2.rotation.set(0,Math.PI/2, Math.PI);
+			жена_2.add( neckLace2 );
+			
+			
+		// създаване на колие жена_3
+			var necklace3 = new THREE.Shape();
+			necklace3.moveTo(  0, 0 );
+			necklace3.quadraticCurveTo(  4, 8, 0, 8.2 );
+			necklace3.quadraticCurveTo( -4, 8, 0, 0 );
+			var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 1, steps: 2, 
+				bevelSize: 1, bevelThickness: 1 };
+			var geometry3 = new THREE.ExtrudeGeometry( necklace3, extrudeSettings );
+			geometry3.translate(0,0,-3);
+			var neckLace3 = new THREE.Mesh( geometry3, new THREE.MeshPhongMaterial({shininess:00,specular:'green'}) );
+			neckLace3.scale.set(0.2,0.2,0.2);
+			neckLace3.position.set(2,20,0);
+			neckLace3.rotation.set(0,Math.PI/2, Math.PI);
+			жена_3.add( neckLace3 );
+			
+			
+			// анимация на човечето
+			animate = function (t)
+			{
+			    // въртене на сцената
+				scene.rotation.set(0,1.6*Math.sin(t/140),0);
+				
+				// приближаване и отдалечаване
+			//	camera.position.set(0,-10,120+30*cos(t/10));
+				
+				
+				//вътрешни мъж и жена
+					мъж.position.set(-20,Math.sin(t/2.5),0);
+					жена.position.set(20,-2+Math.sin(t/2.5),0);
+					
+					мъж.л_крак.врът(0,0,-20-40*Math.sin(t/5));
+					мъж.л_коляно.врът(0,0,-(-50-30*Math.sin(t/5)));
+					мъж.д_крак.врът(0,0,-20-40*Math.sin((1-t)/5));
+					мъж.д_коляно.врът(0,0,-(-50-30*Math.sin((1-t)/5)));
+					
+					жена.л_крак.врът(0,0,-20-5*Math.sin(t/5));
+					жена.л_коляно.врът(0,0,-(-50-5*Math.sin(t/5)));
+					жена.д_крак.врът(0,0,-20-5*Math.sin((1-t)/5));
+					жена.д_коляно.врът(0,0,-(-50-5*Math.sin((1-t)/5)));
+					
+				//средни мъж и жена
+					мъж_2.position.set(60,Math.sin(t/2.5),0);
+					жена_2.position.set(-60,-2+Math.sin(t/2.5),0);
+				
+					мъж_2.л_крак.врът(0,0,-20-40*Math.sin(t/5));
+					мъж_2.л_коляно.врът(0,0,-(-50-30*Math.sin(t/5)));
+					мъж_2.д_крак.врът(0,0,-20-40*Math.sin((1-t)/5));
+					мъж_2.д_коляно.врът(0,0,-(-50-30*Math.sin((1-t)/5)));
+					
+					жена_2.л_крак.врът(0,0,-20-5*Math.sin(t/5));
+					жена_2.л_коляно.врът(0,0,-(-50-5*Math.sin(t/5)));
+					жена_2.д_крак.врът(0,0,-20-5*Math.sin((1-t)/5));
+					жена_2.д_коляно.врът(0,0,-(-50-5*Math.sin((1-t)/5)));
+					
+				//външни мъж и жена
+					мъж_3.position.set(-100,Math.sin(t/2.5),0);
+					жена_3.position.set(100,-2+Math.sin(t/2.5),0);
+					
+					мъж_3.л_крак.врът(0,0,-20-40*Math.sin(t/5));
+					мъж_3.л_коляно.врът(0,0,-(-50-30*Math.sin(t/5)));
+					мъж_3.д_крак.врът(0,0,-20-40*Math.sin((1-t)/5));
+					мъж_3.д_коляно.врът(0,0,-(-50-30*Math.sin((1-t)/5)));
+				
+					жена_3.л_крак.врът(0,0,-20-5*Math.sin(t/5));
+					жена_3.л_коляно.врът(0,0,-(-50-5*Math.sin(t/5)));
+					жена_3.д_крак.врът(0,0,-20-5*Math.sin((1-t)/5));
+					жена_3.д_коляно.врът(0,0,-(-50-5*Math.sin((1-t)/5)));
+					
+					
+				//въртене според параметъра t
+				
+					if(t>=315 && t<640){
+					мъж.rotation.set(0,-Math.PI/2+3*Math.sin(t/100),0);	
+					мъж_2.rotation.set(0,-Math.PI/2+3*Math.sin(t/100),0);	
+					мъж_3.rotation.set(0,-Math.PI/2+3*Math.sin(t/100),0);
+					
+					}
+					
+					if(t>=640&&t<1250){
+				
+					жена.rotation.set(0,-Math.PI/2-3*Math.sin(t/100),0);
+					мъж.rotation.set(0,-Math.PI/2+3*Math.sin(t/100),0);	
+		
+					жена_2.rotation.set(0,-Math.PI/2-3*Math.sin(t/100),0);
+					мъж_2.rotation.set(0,-Math.PI/2+3*Math.sin(t/100),0);	
+		
+					жена_3.rotation.set(0,-Math.PI/2-3*Math.sin(t/100),0);
+					мъж_3.rotation.set(0,-Math.PI/2+3*Math.sin(t/100),0);	
+		
+					}
+					
+					if(t>=1250&&t<1570){
+					
+					жена.rotation.set(0,-Math.PI/2-3*Math.sin(t/100),0);
+					жена_2.rotation.set(0,-Math.PI/2-3*Math.sin(t/100),0);
+					жена_3.rotation.set(0,-Math.PI/2-3*Math.sin(t/100),0);
+				
+					}
+					
+					if(t>=1570){
+					
+					//хващат се за ръце на хорце до края
+					//вътрешни
+						мъж.л_ръка.врът(0,-100,-25);
+						мъж.л_лакът.врът(40,70,-90);
+						мъж.л_китка.врът(10,-20, 10);
+						
+						мъж.д_ръка.врът(0,-100,25);
+						мъж.д_лакът.врът(40,-70,90);
+						мъж.д_китка.врът(10,-20, -10);
+						
+						жена.л_ръка.врът(0,-100,-30);
+						жена.л_лакът.врът(40,70,-90);
+						жена.л_китка.врът(10,-20, 10);	
+							
+						жена.д_ръка.врът(0,-100,30);
+						жена.д_лакът.врът(40,-70,90);
+						жена.д_китка.врът(10,-20, -10);	
+						
+					//средни
+						мъж_2.л_ръка.врът(0,-100,-25);
+						мъж_2.л_лакът.врът(40,70,-90);
+						мъж_2.л_китка.врът(10,-20, 10);
+						
+						мъж_2.д_ръка.врът(0,-100,25);
+						мъж_2.д_лакът.врът(40,-70,90);
+						мъж_2.д_китка.врът(10,-20, -10);
+						
+						жена_2.л_ръка.врът(0,-100,-30);
+						жена_2.л_лакът.врът(40,70,-90);
+						жена_2.л_китка.врът(10,-20, 10);	
+							
+						жена_2.д_ръка.врът(0,-100,30);
+						жена_2.д_лакът.врът(40,-70,90);
+						жена_2.д_китка.врът(10,-20, -10);	
+						
+					//външни
+						мъж_3.л_ръка.врът(0,-100,-25);
+						мъж_3.л_лакът.врът(40,70,-90);
+						мъж_3.л_китка.врът(10,-20, 10);
+							
+						жена_3.д_ръка.врът(0,-100,30);
+						жена_3.д_лакът.врът(40,-70,90);
+						жена_3.д_китка.врът(10,-20, -10);	
+						
+					}
+					
+				
+				// светлини
+				lights[0].position.set(30+20* Math.cos(t/50),350+20*Math.sin(t/40), 350+30*Math.cos(t/50) );
+				lights[1].position.set(60-20* Math.cos(t/50),300+20*Math.sin(t/40), 200+30*Math.cos(t/50) );
+				lights[2].position.set(30-20* Math.cos(t/50), 250+20*Math.sin(t/40), 250+30*Math.cos(t/50) );
+				
+				
+			}
+
+			drawFrame();
+		</script>
+	</body>
+</html>
